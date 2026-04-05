@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI AV Schematic Generator</title>
+    <style>
+        /* ===== 全局样式 ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        /* ===== 顶部导航 ===== */
+        .navbar {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #475569;
+        }
+        .navbar h1 {
+            font-size: 20px;
+            color: #60a5fa;
+        }
+        .navbar .badge {
+            background: #22c55e;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        /* ===== 主体布局 ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* ===== 输入区域 ===== */
+        .input-section {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #334155;
+        }
+        .input-section label {
+            display: block;
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #e2e8f0;
+            padding: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+        }
+        textarea::placeholder { color: #64748b; }
+
+        /* ===== 示例按钮 ===== */
+        .examples {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .example-btn {
+            background: #334155;
+            border: 1px solid #475569;
+            color: #94a3b8;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .example-btn:hover {
+            background: #475569;
+            color: #e2e8f0;
+        }
+
+        /* ===== 生成按钮 ===== */
+        .btn-generate {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-generate:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+        .btn-generate:disabled {
+            background: #475569;
+            cursor: not-allowed;
+        }
+
+        /* ===== 加载动画 ===== */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== 结果区域 ===== */
+        .result-section {
+            display: none;
+            margin-top: 24px;
+        }
+
+        /* 统计卡片 */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+        .stat-card .label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* 图片容器 */
+        .diagram-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .diagram-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        /* 设备清单 */
+        .device-list {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+        .device-list h3 {
+            color: #60a5fa;
+            margin-bottom: 16px;
+        }
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .device-tag {
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .device-tag.input { background: #1e3a5f; color: #60a5fa; border: 1px solid #2563eb; }
+        .device-tag.process { background: #3b2a1a; color: #fb923c; border: 1px solid #ea580c; }
+        .device-tag.output { background: #1a3b2a; color: #4ade80; border: 1px solid #16a34a; }
+
+        /* 下载按钮 */
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 10px 24px;
+            background: #22c55e;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-download:hover { background: #16a34a; }
+
+        /* ===== 错误提示 ===== */
+        .error-msg {
+            display: none;
+            background: #7f1d1d;
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="navbar">
+    <h1>AI AV Schematic Generator</h1>
+    <span class="badge">Demo Mode</span>
+</div>
+
+<!-- 主体 -->
+<div class="container">
+
+    <!-- 输入区域 -->
+    <div class="input-section">
+        <label>Describe your AV system requirements:</label>
+        <textarea id="prompt" placeholder="Example: I need a conference room with 2 displays, a QSYS audio processor, ceiling speakers, wireless microphones, and a Zoom codec for video conferencing..."></textarea>
+
+        <div class="examples">
+            <button class="example-btn" onclick="fillExample('conference')">Conference Room</button>
+            <button class="example-btn" onclick="fillExample('classroom')">Classroom</button>
+            <button class="example-btn" onclick="fillExample('auditorium')">Auditorium</button>
+            <button class="example-btn" onclick="fillExample('huddle')">Huddle Space</button>
+        </div>
+
+        <button class="btn-generate" id="generateBtn" onclick="generate()">
+            <span class="spinner" id="spinner"></span>
+            Generate Schematic
+        </button>
+
+        <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+    <!-- 结果区域 -->
+    <div class="result-section" id="resultSection">
+        <!-- 统计 -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="statDevices">0</div>
+                <div class="label">Devices</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="statConnections">0</div>
+                <div class="label">Connections</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="statTitle">-</div>
+                <div class="label">System Type</div>
+            </div>
+        </div>
+
+        <!-- 原理图 -->
+        <div class="diagram-container">
+            <img id="diagramImg" src="" alt="AV Schematic Diagram">
+        </div>
+        <a class="btn-download" id="downloadBtn" href="" download>Download PNG</a>
+
+        <!-- 设备清单 -->
+        <div class="device-list">
+            <h3>Equipment List</h3>
+            <div class="device-grid" id="deviceGrid"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 示例需求
+    const examples = {
+        conference: "Conference room AV system: 2 laptops as inputs, 1 HDMI switcher, QSYS Core 110f audio processor, 2 wireless microphones, 1 ceiling speaker array with amplifier, 85 inch main display, 55 inch confidence monitor, Zoom Room codec with PTZ camera.",
+        classroom: "Classroom AV system: instructor laptop and document camera as inputs, Extron switcher, 2x 75 inch displays, Shure ceiling microphone array, QSYS Core for audio, 4 ceiling speakers with amplifier, lecture capture system.",
+        auditorium: "Large auditorium: 2 presenter laptops, 1 Blu-ray player, Barco ClickShare, Crestron video switcher, 2x laser projectors with screens, 12 wireless handheld mics, Yamaha digital mixer, 4 amplifier channels, 16 ceiling speakers, 4 stage monitors, live streaming encoder.",
+        huddle: "Small huddle room: 1 laptop HDMI input, 55 inch display with built-in speakers, Logitech Rally Bar for video conferencing, 1 table microphone."
+    };
+
+    function fillExample(type) {
+        document.getElementById("prompt").value = examples[type];
+    }
+
+    async function generate() {
+        const prompt = document.getElementById("prompt").value.trim();
+        if (!prompt) {
+            showError("Please enter your AV system requirements.");
+            return;
+        }
+
+        // 显示加载状态
+        const btn = document.getElementById("generateBtn");
+        const spinner = document.getElementById("spinner");
+        btn.disabled = true;
+        btn.textContent = " Generating...";
+        spinner.style.display = "inline-block";
+        btn.prepend(spinner);
+        hideError();
+
+        try {
+            const response = await fetch("/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt }),
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || "Generation failed");
+            }
+
+            const data = await response.json();
+            showResult(data);
+
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = "Generate Schematic";
+            spinner.style.display = "none";
+        }
+    }
+
+    function showResult(data) {
+        // 统计
+        document.getElementById("statDevices").textContent = data.device_count;
+        document.getElementById("statConnections").textContent = data.connection_count;
+        document.getElementById("statTitle").textContent = data.title;
+        document.getElementById("statTitle").style.fontSize = "14px";
+
+        // 图片
+        document.getElementById("diagramImg").src = data.image;
+        document.getElementById("downloadBtn").href = data.image;
+
+        // 设备清单
+        const grid = document.getElementById("deviceGrid");
+        grid.innerHTML = "";
+        data.devices.forEach(dev => {
+            const tag = document.createElement("div");
+            tag.className = `device-tag ${dev.type}`;
+            const icon = { input: "IN", process: "DSP", output: "OUT" }[dev.type] || "?";
+            tag.textContent = `[${icon}] ${dev.name}`;
+            grid.appendChild(tag);
+        });
+
+        // 显示结果区域
+        document.getElementById("resultSection").style.display = "block";
+        document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function showError(msg) {
+        const el = document.getElementById("errorMsg");
+        el.textContent = msg;
+        el.style.display = "block";
+    }
+    function hideError() {
+        document.getElementById("errorMsg").style.display = "none";
+    }
+
+    // 回车键提交
+    document.getElementById("prompt").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && e.ctrlKey) generate();
+    });
+</script>
+
+</body>
+</html>

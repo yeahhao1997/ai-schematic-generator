@@ -1,0 +1,16 @@
+# API Key - 绝对不能上传！
+.env
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 生成的图片（每次运行都会重新生成）
+output/
+
+# Word 学习笔记（个人文件）
+*.docx
+
+# 系统文件
+.DS_Store
+Thumbs.db
