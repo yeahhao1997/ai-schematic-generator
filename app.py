@@ -61,8 +61,10 @@ def get_image(filename):
     return "Image not found", 404
 
 
+# 确保 output 文件夹存在（本地和生产环境都需要）
+os.makedirs("output", exist_ok=True)
+
 if __name__ == "__main__":
-    os.makedirs("output", exist_ok=True)
     print("=" * 50)
     print("  AI AV Schematic Generator - Web App")
     print("  Open: http://localhost:5000")
