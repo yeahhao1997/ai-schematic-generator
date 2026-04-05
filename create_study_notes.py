@@ -399,6 +399,114 @@ p = doc.add_paragraph()
 run = p.add_run("阶段 2 完成！你现在有了一个可以在浏览器里使用的 AI 画图系统！")
 run.bold = True
 
+doc.add_page_break()
+
+# ===== 阶段 3 =====
+doc.add_heading("阶段 3：Git + GitHub", level=1)
+
+doc.add_heading("Step 3.1：什么是 Git？", level=2)
+doc.add_paragraph(
+    "Git 是版本控制工具，帮你记录代码的每次修改。\n\n"
+    "类比：\n"
+    "- 没有 Git：写错了只能 Ctrl+Z，关掉文件就没了\n"
+    "- 有 Git：每次'存档'都保留，随时可以回到任何版本\n\n"
+    "核心概念：\n"
+    "- Repository (仓库)：项目的文件夹，Git 会追踪里面的所有变化\n"
+    "- Commit (提交)：一次'存档'，记录了你改了什么、为什么改\n"
+    "- Stage (暂存)：选择哪些修改要放进下一次 commit\n"
+    "- Branch (分支)：代码的平行世界，可以同时开发多个功能"
+)
+
+doc.add_heading("Step 3.2：什么是 GitHub？", level=2)
+doc.add_paragraph(
+    "GitHub 是代码托管平台（Git 的云端版本）。\n\n"
+    "类比：\n"
+    "- Git = 本地的游戏存档\n"
+    "- GitHub = 把存档上传到云端，换电脑也能继续玩\n\n"
+    "GitHub 的作用：\n"
+    "- 备份代码（电脑坏了也不怕）\n"
+    "- 多人协作（团队一起写代码）\n"
+    "- 展示作品（面试、接单都能用）\n"
+    "- CI/CD（自动测试和部署，阶段4会学）"
+)
+
+doc.add_heading("Step 3.3：什么是 .gitignore？", level=2)
+doc.add_paragraph(
+    ".gitignore 文件告诉 Git 哪些文件不要追踪。\n\n"
+    "我们忽略了：\n"
+    "- .env：API Key 绝对不能上传！\n"
+    "- __pycache__/：Python 缓存，自动生成的\n"
+    "- output/：生成的图片，每次运行会重新生成\n"
+    "- *.docx：个人学习笔记\n\n"
+    "重要安全原则：\n"
+    "密码、API Key、私钥等敏感信息永远不要上传到 GitHub！\n"
+    "用 .env 文件存储，用 .gitignore 忽略。"
+)
+
+doc.add_heading("Step 3.4：Git 常用命令", level=2)
+git_commands = [
+    ("git init", "初始化仓库（只需要做一次）"),
+    ("git status", "查看当前状态（哪些文件被修改了）"),
+    ("git add <file>", "把文件加入暂存区（选择要提交的文件）"),
+    ("git commit -m 'message'", "提交（存档），message 描述你做了什么"),
+    ("git log", "查看提交历史"),
+    ("git push", "把本地代码推送到 GitHub"),
+    ("git pull", "从 GitHub 拉取最新代码"),
+    ("git diff", "查看修改了什么内容"),
+]
+table3 = doc.add_table(rows=1, cols=2, style="Light Grid Accent 1")
+hdr3 = table3.rows[0].cells
+hdr3[0].text = "命令"
+hdr3[1].text = "作用"
+for cmd, desc in git_commands:
+    row = table3.add_row().cells
+    row[0].text = cmd
+    row[1].text = desc
+
+doc.add_heading("Step 3.5：GitHub CLI (gh)", level=2)
+doc.add_paragraph(
+    "GitHub CLI 是 GitHub 的命令行工具，可以在终端里操作 GitHub。\n\n"
+    "安装命令：\n"
+    "  winget install --id GitHub.cli\n\n"
+    "登录命令：\n"
+    "  gh auth login --web -p https\n\n"
+    "创建远程仓库并推送：\n"
+    "  gh repo create ai-schematic-generator --public --source=. --remote=origin --push\n\n"
+    "这一条命令做了 4 件事：\n"
+    "1. 在 GitHub 上创建新仓库\n"
+    "2. --public 表示公开仓库（别人可以看到）\n"
+    "3. --source=. 表示用当前文件夹的代码\n"
+    "4. --push 表示立即推送代码上去"
+)
+
+doc.add_heading("Step 3.6：我们的仓库", level=2)
+doc.add_paragraph(
+    "仓库地址：https://github.com/yeahhao1997/ai-schematic-generator\n\n"
+    "上传的文件：\n"
+    "- .env.example（API Key 模板，注意不是 .env 本身！）\n"
+    "- .gitignore（忽略规则）\n"
+    "- app.py（Web 服务器）\n"
+    "- schematic_engine.py（AI 核心引擎）\n"
+    "- templates/index.html（网页界面）\n"
+    "- requirements.txt（依赖清单）\n"
+    "- create_study_notes.py（笔记生成脚本）"
+)
+
+doc.add_heading("日常工作流程", level=3)
+doc.add_paragraph(
+    "以后每次修改代码后：\n\n"
+    "1. git status          -- 看改了什么\n"
+    "2. git add <file>      -- 选择要提交的文件\n"
+    "3. git commit -m '...' -- 提交（写清楚改了什么）\n"
+    "4. git push            -- 推送到 GitHub\n\n"
+    "养成习惯：每完成一个小功能就 commit 一次！"
+)
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+run = p.add_run("阶段 3 完成！你的代码已经在 GitHub 上了！")
+run.bold = True
+
 # ===== 保存 =====
 output_path = r"C:\Users\User\ai-schematic-generator\Study_Notes_AI_Schematic.docx"
 doc.save(output_path)
