@@ -507,6 +507,256 @@ p = doc.add_paragraph()
 run = p.add_run("阶段 3 完成！你的代码已经在 GitHub 上了！")
 run.bold = True
 
+doc.add_page_break()
+
+# ===== 阶段 4 =====
+doc.add_heading("阶段 4：CI/CD（持续集成/持续部署）", level=1)
+
+doc.add_heading("Step 4.1：什么是 CI/CD？", level=2)
+doc.add_paragraph(
+    "CI/CD 是现代软件开发的核心实践。\n\n"
+    "CI = Continuous Integration（持续集成）\n"
+    "每次你 push 代码到 GitHub，系统自动运行测试。\n"
+    "如果测试失败，你马上就知道哪里出了问题。\n\n"
+    "CD = Continuous Deployment（持续部署）\n"
+    "测试通过后，系统自动把代码部署到服务器上。\n"
+    "不需要手动操作，推代码就自动上线。\n\n"
+    "类比：\n"
+    "- 没有 CI/CD：你写完代码 → 手动测试 → 手动上传服务器 → 祈祷不出bug\n"
+    "- 有 CI/CD：你 push 代码 → 机器自动测试 → 自动部署 → 出问题马上通知你\n\n"
+    "好处：\n"
+    "- 减少人为错误（机器不会忘记跑测试）\n"
+    "- 快速发现 bug（每次改动都测试）\n"
+    "- 节省时间（不用手动部署）\n"
+    "- 团队协作更安全（别人的代码也要通过测试才能合并）"
+)
+
+doc.add_heading("Step 4.2：什么是 GitHub Actions？", level=2)
+doc.add_paragraph(
+    "GitHub Actions 是 GitHub 内置的 CI/CD 工具，免费使用。\n\n"
+    "核心概念：\n"
+    "- Workflow（工作流）：一个自动化流程，定义在 .yml 文件里\n"
+    "- Trigger（触发器）：什么时候运行？push 时？PR 时？定时？\n"
+    "- Job（任务）：工作流里的一组步骤\n"
+    "- Step（步骤）：一个具体的操作\n"
+    "- Runner（运行器）：GitHub 免费提供的服务器，用来执行你的任务\n\n"
+    "文件位置：\n"
+    "  .github/workflows/ci.yml\n\n"
+    "GitHub 会自动检测这个文件夹，发现 .yml 文件就会运行。"
+)
+
+doc.add_heading("Step 4.3：ci.yml 文件解读", level=2)
+doc.add_paragraph(
+    "我们的 CI 配置文件做了以下事情：\n\n"
+    "1. 触发条件 (on:)\n"
+    "   - push 到 master 分支时触发\n"
+    "   - 有人提 Pull Request 到 master 时触发\n\n"
+    "2. 运行环境 (runs-on:)\n"
+    "   - ubuntu-latest：使用最新版 Ubuntu 服务器\n"
+    "   - GitHub 免费提供，不需要你自己买服务器！\n\n"
+    "3. 执行步骤 (steps:)\n"
+    "   Step 1: Checkout code — 下载你的代码到服务器\n"
+    "   Step 2: Setup Python — 安装 Python 3.11\n"
+    "   Step 3: Install Graphviz — 安装画图工具\n"
+    "   Step 4: Install dependencies — 安装 Python 库\n"
+    "   Step 5: Run tests — 运行 pytest 测试！\n\n"
+    "结果：\n"
+    "- 全部通过 → 绿色勾 (success)\n"
+    "- 有失败 → 红色 X (failure) → GitHub 会发邮件通知你"
+)
+
+doc.add_heading("Step 4.4：测试文件解读 (test_engine.py)", level=2)
+doc.add_paragraph(
+    "我们写了 10 个测试，覆盖了系统的各个部分：\n\n"
+    "核心引擎测试：\n"
+    "1. test_demo_mode_returns_data — 模拟模式能正常返回数据\n"
+    "2. test_result_has_required_fields — 数据包含必要字段\n"
+    "3. test_device_format — 设备格式正确（有 id, name, type）\n"
+    "4. test_connection_format — 连接格式正确（有 from, to, cable）\n"
+    "5. test_connections_reference_valid_devices — 连接指向存在的设备\n"
+    "6. test_generate_diagram_creates_file — 能生成 PNG 文件\n"
+    "7. test_system_prompt_quality — Prompt 包含关键指令\n\n"
+    "Web 接口测试：\n"
+    "8. test_flask_app_starts — 网站能启动\n"
+    "9. test_generate_endpoint — /generate 接口返回正确数据\n"
+    "10. test_empty_input_rejected — 空输入被正确拒绝"
+)
+
+doc.add_heading("Step 4.5：什么是 pytest？", level=2)
+doc.add_paragraph(
+    "pytest 是 Python 最流行的测试框架。\n\n"
+    "规则很简单：\n"
+    "- 测试文件以 test_ 开头\n"
+    "- 测试函数以 test_ 开头\n"
+    "- 用 assert 语句验证结果\n\n"
+    "例如：\n"
+    "  def test_addition():\n"
+    "      assert 1 + 1 == 2      # 通过\n"
+    "      assert 1 + 1 == 3      # 失败！\n\n"
+    "运行命令：\n"
+    "  python -m pytest test_engine.py -v\n\n"
+    "  -v 表示 verbose（详细模式），显示每个测试的结果"
+)
+
+doc.add_heading("Step 4.6：查看 CI 结果", level=2)
+doc.add_paragraph(
+    "方法 1：GitHub 网页\n"
+    "打开 https://github.com/yeahhao1997/ai-schematic-generator/actions\n"
+    "可以看到每次 push 的测试结果\n\n"
+    "方法 2：GitHub CLI\n"
+    "在终端运行：gh run list --limit 5\n"
+    "显示最近 5 次运行的状态\n\n"
+    "我们的第一次 CI 运行结果：success！\n"
+    "10 个测试全部通过，耗时约 30 秒。"
+)
+
+doc.add_heading("CI/CD 工作流程图", level=3)
+doc.add_paragraph(
+    "你 push 代码\n"
+    "    |\n"
+    "    v\n"
+    "GitHub 检测到 push 事件\n"
+    "    |\n"
+    "    v\n"
+    "启动 Ubuntu 服务器（Runner）\n"
+    "    |\n"
+    "    v\n"
+    "下载你的代码\n"
+    "    |\n"
+    "    v\n"
+    "安装 Python + 依赖\n"
+    "    |\n"
+    "    v\n"
+    "运行 pytest 测试\n"
+    "    |\n"
+    "    v\n"
+    "全部通过？ → 绿勾\n"
+    "有失败？   → 红X + 邮件通知"
+)
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+run = p.add_run("阶段 4 完成！你的项目现在有了自动化 CI/CD！")
+run.bold = True
+
+doc.add_page_break()
+
+# ===== 阶段 5 =====
+doc.add_heading("阶段 5：部署上线", level=1)
+
+doc.add_heading("Step 5.1：什么是部署？", level=2)
+doc.add_paragraph(
+    "部署 (Deploy) = 把你的程序放到互联网上，让任何人都能访问。\n\n"
+    "之前你只能在自己电脑上运行（localhost），别人访问不了。\n"
+    "部署后，你的系统有了一个公开网址，全世界都能用。\n\n"
+    "类比：\n"
+    "- localhost = 在自己家做饭，只有自己能吃\n"
+    "- 部署 = 开了一家餐厅，任何人都能来吃"
+)
+
+doc.add_heading("Step 5.2：部署平台选择", level=2)
+doc.add_paragraph(
+    "常见的免费部署平台：\n\n"
+    "PythonAnywhere（我们用的）\n"
+    "- 优点：免费、不需要信用卡、对 Python/Flask 支持好\n"
+    "- 缺点：免费版有流量限制\n"
+    "- 网址：pythonanywhere.com\n\n"
+    "Render.com\n"
+    "- 优点：支持多种语言、自动部署\n"
+    "- 缺点：现在需要信用卡\n\n"
+    "其他选项：Railway、Fly.io、Vercel（适合前端项目）"
+)
+
+doc.add_heading("Step 5.3：PythonAnywhere 部署步骤", level=2)
+doc.add_paragraph(
+    "1. 注册 PythonAnywhere 免费账号\n"
+    "   pythonanywhere.com → Create Beginner account\n\n"
+    "2. 打开 Bash Console，运行：\n"
+    "   git clone https://github.com/yeahhao1997/ai-schematic-generator.git\n"
+    "   cd ai-schematic-generator\n"
+    "   pip install --user -r requirements.txt\n"
+    "   echo 'ANTHROPIC_API_KEY=your-key' > .env\n\n"
+    "3. 创建 Web App\n"
+    "   Web 菜单 → Add new web app → Flask → Python 3.13\n\n"
+    "4. 修改 Source code 路径\n"
+    "   改成：/home/yeahhao1997/ai-schematic-generator\n\n"
+    "5. 修改 WSGI 配置文件\n"
+    "   把默认内容替换为：\n"
+    "   import sys, os\n"
+    "   path = '/home/yeahhao1997/ai-schematic-generator'\n"
+    "   if path not in sys.path:\n"
+    "       sys.path.append(path)\n"
+    "   os.chdir(path)\n"
+    "   from dotenv import load_dotenv\n"
+    "   load_dotenv(os.path.join(path, '.env'))\n"
+    "   from app import app as application\n\n"
+    "6. 点 Reload 按钮\n\n"
+    "7. 访问 https://yeahhao1997.pythonanywhere.com"
+)
+
+doc.add_heading("Step 5.4：关键概念", level=2)
+deploy_concepts = [
+    ("WSGI (Web Server Gateway Interface)",
+     "Python Web 应用和服务器之间的标准接口。PythonAnywhere 通过 WSGI 文件找到你的 Flask app。"),
+    ("gunicorn",
+     "生产级别的 Python Web 服务器。开发时用 Flask 自带的服务器，上线时用 gunicorn（更稳定、更快）。"),
+    ("环境变量 (Environment Variables)",
+     "服务器上的配置信息。API Key 等敏感信息通过环境变量传递，不写在代码里。"),
+    ("render.yaml",
+     "Render.com 的配置文件，定义如何构建和启动你的应用。其他平台有类似的配置方式。"),
+]
+for concept, explanation in deploy_concepts:
+    p = doc.add_paragraph()
+    r = p.add_run(f"{concept}：")
+    r.bold = True
+    p.add_run(f"\n{explanation}")
+
+doc.add_heading("Step 5.5：更新部署的代码", level=2)
+doc.add_paragraph(
+    "以后你修改了代码，需要更新线上版本：\n\n"
+    "1. 本地修改代码\n"
+    "2. git add + git commit + git push（推到 GitHub）\n"
+    "3. GitHub Actions 自动运行测试\n"
+    "4. 去 PythonAnywhere 的 Bash Console 运行：\n"
+    "   cd ~/ai-schematic-generator\n"
+    "   git pull\n"
+    "5. 去 Web 页面点 Reload\n\n"
+    "完整流程：\n"
+    "改代码 → push → CI 自动测试 → 手动 git pull → Reload → 上线"
+)
+
+doc.add_page_break()
+
+# ===== 总结 =====
+doc.add_heading("项目总结", level=1)
+doc.add_paragraph(
+    "恭喜！你从零完成了一个完整的 AI 项目！\n\n"
+    "你学会了：\n"
+    "1. Python 编程基础（函数、模块、JSON）\n"
+    "2. 调用 AI API（Claude API + System Prompt）\n"
+    "3. 自动画图（Graphviz）\n"
+    "4. Web 开发（Flask + HTML/CSS/JavaScript）\n"
+    "5. 版本控制（Git + GitHub）\n"
+    "6. CI/CD（GitHub Actions + pytest）\n"
+    "7. 部署上线（PythonAnywhere）\n\n"
+    "你的系统：\n"
+    "- 代码仓库：https://github.com/yeahhao1997/ai-schematic-generator\n"
+    "- 线上网址：https://yeahhao1997.pythonanywhere.com\n"
+    "- CI/CD：https://github.com/yeahhao1997/ai-schematic-generator/actions\n\n"
+    "下一步可以做：\n"
+    "- 拿到 Anthropic API Key，切换到真实 AI 模式\n"
+    "- 在 Fiverr 开始接单\n"
+    "- 添加更多功能（PDF 导出、draw.io 格式、更多图表类型）\n"
+    "- 学习 Docker 容器化部署"
+)
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+r = p.add_run("全部 5 个阶段完成！")
+r.bold = True
+r.font.size = Pt(16)
+r.font.color.rgb = RGBColor(0, 102, 204)
+
 # ===== 保存 =====
 output_path = r"C:\Users\User\ai-schematic-generator\Study_Notes_AI_Schematic.docx"
 doc.save(output_path)
