@@ -254,10 +254,17 @@
             <button class="example-btn" onclick="fillExample('huddle')">Huddle Space</button>
         </div>
 
-        <button class="btn-generate" id="generateBtn" onclick="generate()">
-            <span class="spinner" id="spinner"></span>
-            Generate Schematic
-        </button>
+        <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;">
+            <button class="btn-generate" id="generateBtn" onclick="generate('png')">
+                <span class="spinner" id="spinner"></span>
+                Quick Preview (PNG)
+            </button>
+            <button class="btn-generate" id="generateDrawioBtn" onclick="generate('drawio')"
+                style="background:linear-gradient(135deg, #9333ea, #a855f7);">
+                <span class="spinner" id="spinnerDrawio"></span>
+                Professional (Draw.io)
+            </button>
+        </div>
 
         <div class="error-msg" id="errorMsg"></div>
     </div>
@@ -281,10 +288,14 @@
         </div>
 
         <!-- 原理图 -->
-        <div class="diagram-container">
+        <div class="diagram-container" id="diagramContainer">
             <img id="diagramImg" src="" alt="AV Schematic Diagram">
         </div>
-        <a class="btn-download" id="downloadBtn" href="" download>Download PNG</a>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <a class="btn-download" id="downloadBtn" href="" download>Download PNG</a>
+            <a class="btn-download" id="downloadDrawioBtn" href="" download
+               style="display:none; background:#9333ea;">Download .drawio File</a>
+        </div>
 
         <!-- 设备清单 -->
         <div class="device-list">
@@ -308,24 +319,25 @@
         document.getElementById("prompt").value = examples[type];
     }
 
-    async function generate() {
+    async function generate(mode = 'png') {
         const prompt = document.getElementById("prompt").value.trim();
         if (!prompt) {
             showError("Please enter your AV system requirements.");
             return;
         }
 
-        // 显示加载状态
-        const btn = document.getElementById("generateBtn");
-        const spinner = document.getElementById("spinner");
+        const isDrawio = mode === 'drawio';
+        const btn = document.getElementById(isDrawio ? "generateDrawioBtn" : "generateBtn");
+        const otherBtn = document.getElementById(isDrawio ? "generateBtn" : "generateDrawioBtn");
         btn.disabled = true;
-        btn.textContent = " Generating...";
-        spinner.style.display = "inline-block";
-        btn.prepend(spinner);
+        otherBtn.disabled = true;
+        const origText = btn.textContent;
+        btn.textContent = isDrawio ? " Generating Draw.io..." : " Generating PNG...";
         hideError();
 
         try {
-            const response = await fetch("/generate", {
+            const endpoint = isDrawio ? "/generate-drawio" : "/generate";
+            const response = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ prompt }),
@@ -337,36 +349,59 @@
             }
 
             const data = await response.json();
-            showResult(data);
+            showResult(data, isDrawio);
 
         } catch (error) {
             showError(error.message);
         } finally {
             btn.disabled = false;
-            btn.innerHTML = "Generate Schematic";
-            spinner.style.display = "none";
+            otherBtn.disabled = false;
+            btn.textContent = origText;
         }
     }
 
-    function showResult(data) {
+    function showResult(data, isDrawio = false) {
         // 统计
         document.getElementById("statDevices").textContent = data.device_count;
         document.getElementById("statConnections").textContent = data.connection_count;
         document.getElementById("statTitle").textContent = data.title;
         document.getElementById("statTitle").style.fontSize = "14px";
 
-        // 图片
-        document.getElementById("diagramImg").src = data.image;
-        document.getElementById("downloadBtn").href = data.image;
+        const imgContainer = document.getElementById("diagramContainer");
+        const pngBtn = document.getElementById("downloadBtn");
+        const drawioBtn = document.getElementById("downloadDrawioBtn");
+
+        if (isDrawio) {
+            // Draw.io 模式：隐藏图片，显示下载按钮
+            imgContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#333;">'
+                + '<p style="font-size:18px;font-weight:bold;">Draw.io file generated!</p>'
+                + '<p style="margin-top:10px;">Download the .drawio file and open it in:</p>'
+                + '<p style="margin-top:5px;"><a href="https://app.diagrams.net/" target="_blank" style="color:#2563eb;">app.diagrams.net</a> or draw.io desktop app</p>'
+                + '</div>';
+            pngBtn.style.display = "none";
+            drawioBtn.style.display = "inline-flex";
+            drawioBtn.href = data.drawio_file;
+        } else {
+            // PNG 模式
+            imgContainer.innerHTML = '<img id="diagramImg" src="' + data.image + '" alt="AV Schematic" style="max-width:100%;border-radius:8px;">';
+            pngBtn.style.display = "inline-flex";
+            pngBtn.href = data.image;
+            drawioBtn.style.display = "none";
+        }
 
         // 设备清单
         const grid = document.getElementById("deviceGrid");
         grid.innerHTML = "";
         data.devices.forEach(dev => {
             const tag = document.createElement("div");
-            tag.className = `device-tag ${dev.type}`;
-            const icon = { input: "IN", process: "DSP", output: "OUT" }[dev.type] || "?";
-            tag.textContent = `[${icon}] ${dev.name}`;
+            const devType = dev.type || dev.category || "processor";
+            const typeMap = { input: "input", processor: "process", process: "process", output: "output", network: "process", control: "process" };
+            tag.className = `device-tag ${typeMap[devType] || "process"}`;
+            const iconMap = { input: "IN", processor: "DSP", process: "DSP", output: "OUT", network: "NET", control: "CTL" };
+            const icon = iconMap[devType] || "?";
+            const model = dev.model ? ` (${dev.model})` : "";
+            const portCount = dev.ports ? ` - ${dev.ports.length} ports` : "";
+            tag.textContent = `[${icon}] ${dev.name}${model}${portCount}`;
             grid.appendChild(tag);
         });
 

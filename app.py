@@ -10,6 +10,7 @@ import json
 import uuid
 from flask import Flask, render_template, request, jsonify, send_file
 from schematic_engine import call_claude_ai, generate_diagram
+from drawio_engine import call_claude_for_drawio, generate_drawio
 
 app = Flask(__name__)
 
@@ -50,6 +51,43 @@ def generate():
         "device_count": len(result["devices"]),
         "connection_count": len(result["connections"]),
     })
+
+
+@app.route("/generate-drawio", methods=["POST"])
+def generate_drawio_route():
+    """
+    生成 draw.io 专业原理图
+    返回 JSON：包含设备清单 + drawio 下载路径
+    """
+    data = request.get_json()
+    user_input = data.get("prompt", "").strip()
+
+    if not user_input:
+        return jsonify({"error": "Please enter your AV system requirements."}), 400
+
+    result = call_claude_for_drawio(user_input)
+
+    file_id = uuid.uuid4().hex[:8]
+    output_path = f"output/schematic_{file_id}.drawio"
+    generate_drawio(result, output_path)
+
+    return jsonify({
+        "title": result.get("title", "AV Schematic"),
+        "devices": result.get("devices", []),
+        "connections": result.get("connections", []),
+        "drawio_file": f"/download/{os.path.basename(output_path)}",
+        "device_count": len(result.get("devices", [])),
+        "connection_count": len(result.get("connections", [])),
+    })
+
+
+@app.route("/download/<filename>")
+def download_file(filename):
+    """下载 drawio 文件"""
+    filepath = os.path.join("output", filename)
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True)
+    return "File not found", 404
 
 
 @app.route("/image/<filename>")
