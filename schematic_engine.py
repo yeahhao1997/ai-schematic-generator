@@ -96,7 +96,16 @@ def call_claude_ai(user_input: str) -> dict:
 
     # 解析 AI 返回的 JSON
     response_text = message.content[0].text
-    return json.loads(response_text)
+
+    # AI 有时会在 JSON 外面包 ```json ... ```，需要清理
+    text = response_text.strip()
+    if text.startswith("```"):
+        # 去掉第一行 ```json 和最后一行 ```
+        lines = text.split("\n")
+        lines = [l for l in lines if not l.strip().startswith("```")]
+        text = "\n".join(lines)
+
+    return json.loads(text)
 
 
 def generate_diagram(data: dict, output_name: str = "output/schematic") -> str:
